@@ -1,7 +1,8 @@
 #MenuTitle: FB Check Contours
 # -*- coding: utf-8 -*-
 """
-Runs a modified version of check 153 form FontBakery within Glyphs App and opens a new tab with the layers that deviate from the expected number of contours
+Runs a modified version of check 153 from FontBakery within Glyphs App and opens a new tab with the layers that deviate from the expected number of contours
+(Works non-destructively so all components are retained)
 """
 
 from glyphdata import desired_glyph_data
