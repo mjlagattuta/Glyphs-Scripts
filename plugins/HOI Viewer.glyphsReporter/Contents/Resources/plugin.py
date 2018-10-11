@@ -15,15 +15,14 @@ import objc
 import GlyphsApp
 from GlyphsApp import *
 from GlyphsApp.plugins import *
-# from Cocoa import NSBezierPath
 import math
 import re
 
 class viewHOI(ReporterPlugin):
-	# the dialog view (e.g., panel or window)
+	# The dialog view (e.g., panel or window)
 	sliderView = objc.IBOutlet()
 
-	# the sliders and button placed inside the view
+	# The sliders and button placed inside the view
 	# TODO: slider number should be based on number of axes (there will be no limit with Glyphs App 3.0)
 	# can use a for loop to gen them:: 	 globals()['slider%s' % (i + 1)] = objc.IBOutlet()
 	# the issue is getting a variable amount of slider views to work and a variable number of methods using @objc.IBAction
@@ -31,21 +30,39 @@ class viewHOI(ReporterPlugin):
 	slider2 = objc.IBOutlet() 
 	slider3 = objc.IBOutlet() 
 	slider4 = objc.IBOutlet()
+	slider5 = objc.IBOutlet()
+	slider6 = objc.IBOutlet()
+	sync1 = objc.IBOutlet()
+	sync2 = objc.IBOutlet() 
+	sync3 = objc.IBOutlet() 
+	sync4 = objc.IBOutlet()
+	sync5 = objc.IBOutlet()
+	sync6 = objc.IBOutlet()
+	axisPreviewSelector = objc.IBOutlet()
 	button = objc.IBOutlet()
 	button2 = objc.IBOutlet()
 
 	# Axis variables
-	# TODO eventually: Fetch these values + determine number of axes
-	weightValue = 84.0
-	slantValue = 0.0
-	italicValue = 0.0
-	monoValue = 1000.0
+	# TODO eventually: Fetch these values(DONE) + determine number of axes(important for Glyphs App 3)
+	globals()['axis1Value'] = 84.0
+	globals()['axis2Value'] = 0.0
+	globals()['axis3Value'] = 0.0
+	globals()['axis4Value'] = 0.0
+	globals()['axis5Value'] = 0.0
+	globals()['axis6Value'] = 1000.0
+
+	globals()['check1'] = False
+	globals()['check2'] = False
+	globals()['check3'] = False
+	globals()['check4'] = False
+	globals()['check5'] = False
+	globals()['check6'] = False
+
 	selection = []
 	nodeType = []
 	showFuture = False
-	angleTolerance = 1.0
+	angleTolerance = 1.0  # Tolerance is in degrees and anything above this value will appear red, anything below it will approach yellow and then green at 0.0
 	font = Glyphs.font
-	# lastState = GSPath()
 
 	setup = True
 	# Set up variables for the name of each axis "axis" + "#" starting from 1
@@ -66,27 +83,27 @@ class viewHOI(ReporterPlugin):
 			elif index == 1:
 				if master.widthValue < globals()['axis%sMin' % (index + 1)]:
 					globals()['axis%sMin' % (index + 1)] = master.widthValue
-				if master.weightValue > globals()['axis%sMax' % (index + 1)]:
+				if master.widthValue > globals()['axis%sMax' % (index + 1)]:
 					globals()['axis%sMax' % (index + 1)] = master.widthValue
 			elif index == 2:
 				if master.customValue < globals()['axis%sMin' % (index + 1)]:
 					globals()['axis%sMin' % (index + 1)] = master.customValue
-				if master.weightValue > globals()['axis%sMax' % (index + 1)]:
+				if master.customValue > globals()['axis%sMax' % (index + 1)]:
 					globals()['axis%sMax' % (index + 1)] = master.customValue
 			elif index == 3:
 				if master.customValue1 < globals()['axis%sMin' % (index + 1)]:
 					globals()['axis%sMin' % (index + 1)] = master.customValue1
-				if master.weightValue > globals()['axis%sMax' % (index + 1)]:
+				if master.customValue1 > globals()['axis%sMax' % (index + 1)]:
 					globals()['axis%sMax' % (index + 1)] = master.customValue1
 			elif index == 4:
 				if master.customValue2 < globals()['axis%sMin' % (index + 1)]:
 					globals()['axis%sMin' % (index + 1)] = master.customValue2
-				if master.weightValue > globals()['axis%sMax' % (index + 1)]:
+				if master.customValue2 > globals()['axis%sMax' % (index + 1)]:
 					globals()['axis%sMax' % (index + 1)] = master.customValue2
 			elif index == 5:
 				if master.customValue3 < globals()['axis%sMin' % (index + 1)]:
 					globals()['axis%sMin' % (index + 1)] = master.customValue3
-				if master.weightValue > globals()['axis%sMax' % (index + 1)]:
+				if master.customValue3 > globals()['axis%sMax' % (index + 1)]:
 					globals()['axis%sMax' % (index + 1)] = master.customValue3
 					
 	def checkVirtualMasters(self, font, axis, index):
@@ -101,10 +118,11 @@ class viewHOI(ReporterPlugin):
 
 	def setAxisExtremes(self, font, iterAxes):
 		for i in iterAxes:
-			# Set sliders to values here
+			# Set axis values
 			self.checkMasters(font, globals()['axis%s' % (i + 1)], i)
 			self.checkVirtualMasters(font, globals()['axis%s' % (i + 1)], i)
 
+			# Set slider values
 			if i == 0:
 				self.slider1.setMinValue_(globals()['axis%sMin' % (i + 1)])
 				self.slider1.setMaxValue_(globals()['axis%sMax' % (i + 1)])
@@ -117,21 +135,30 @@ class viewHOI(ReporterPlugin):
 				print "slider2"
 				print globals()['axis%sMin' % (i + 1)]
 				print globals()['axis%sMax' % (i + 1)]
-			elif i == 2 or i == 3 or i == 4:
+			elif i == 2:
 				self.slider3.setMinValue_(globals()['axis%sMin' % (i + 1)])
 				self.slider3.setMaxValue_(globals()['axis%sMax' % (i + 1)])
 				print "slider3"
 				print globals()['axis%sMin' % (i + 1)]
 				print globals()['axis%sMax' % (i + 1)]
-			elif i == 5:
+			elif i == 3:
 				self.slider4.setMinValue_(globals()['axis%sMin' % (i + 1)])
 				self.slider4.setMaxValue_(globals()['axis%sMax' % (i + 1)])
 				print "slider4"
 				print globals()['axis%sMin' % (i + 1)]
 				print globals()['axis%sMax' % (i + 1)]
-
-				
-
+			elif i == 4:
+				self.slider5.setMinValue_(globals()['axis%sMin' % (i + 1)])
+				self.slider5.setMaxValue_(globals()['axis%sMax' % (i + 1)])
+				print "slider5"
+				print globals()['axis%sMin' % (i + 1)]
+				print globals()['axis%sMax' % (i + 1)]
+			elif i == 5:
+				self.slider6.setMinValue_(globals()['axis%sMin' % (i + 1)])
+				self.slider6.setMaxValue_(globals()['axis%sMax' % (i + 1)])
+				print "slider6"
+				print globals()['axis%sMin' % (i + 1)]
+				print globals()['axis%sMax' % (i + 1)]
 
 	def settings(self):
 		# Load .nib file next to plugin.py
@@ -140,40 +167,51 @@ class viewHOI(ReporterPlugin):
 		# Load slider view as a right-click context menu
 		self.generalContextMenus = [{'name': 'HOI Viewer', 'view': self.sliderView}]
 
-		# TODO: pull these values from the file
-		# self.slider1.setMinValue_(84.0)
-		# self.slider1.setMaxValue_(132.0)
-		# self.slider2.setMinValue_(0.0)
-		# self.slider2.setMaxValue_(1000.0)
-		# self.slider3.setMinValue_(0.0)
-		# self.slider3.setMaxValue_(1000.0)
-		# self.slider4.setMinValue_(0.0)
-		# self.slider4.setMaxValue_(1000.0)
-
 	# Updates the temp instance and the drawings based on the sliders
+	# TODO: Figure out how to pull the state of the check boxes and then set values equal based on it
+	# Maybe use a dictionary to link axes?
 	def sliderUpdate(self):
-		self.weightValue = self.slider1.floatValue()
-		self.slantValue = self.slider2.floatValue()
-		self.italicValue = self.slider3.floatValue()
-		self.monoValue = self.slider4.floatValue()
+		sliderList = [self.slider1, self.slider2, self.slider3, self.slider4, self.slider5, self.slider6]
+
+		keySlider = None
+		for i in range(len(self.font.axes)):
+			if globals()['check%s' % (i + 1)] == True:
+				keySlider = i
+				break
+
+		for i in range(len(self.font.axes)):
+			# if keySlider != None:
+			# 	keySliderAlias = vars(viewHOI)['slider%s' % (keySlider)])
+			# sliderAlias = vars(viewHOI)['slider%s' % (i + 1)]
+			if globals()['check%s' % (i + 1)] == True:
+				globals()['axis%sValue' % (i + 1)] = sliderList[keySlider].floatValue()
+			else:
+				globals()['axis%sValue' % (i + 1)] = sliderList[i].floatValue()
+
+		# axis1Value = self.slider1.floatValue()
+		# axis2Value = self.slider2.floatValue()
+		# axis3Value = self.slider3.floatValue()
+		# axis4Value = self.slider4.floatValue()
+		# axis5Value = self.slider5.floatValue()
+		# axis6Value = self.slider6.floatValue()
 
 		layer = Glyphs.font.selectedLayers[0]
 		currentGlyphName = layer.parent.name
 
-		tempInstance = layer.parent.parent.instances[0].copy()
+		tempInstance = self.font.instances[0].copy()
 		tempInstance.name = "tempInstance"
-		tempInstance.weightValue = self.weightValue
-		tempInstance.widthValue = self.slantValue
-		tempInstance.customValue = self.italicValue
-		tempInstance.setInterpolationCustom1_(self.italicValue)
-		tempInstance.setInterpolationCustom2_(self.italicValue)
-		tempInstance.setInterpolationCustom3_(self.monoValue)
+		tempInstance.weightValue = axis1Value
+		tempInstance.widthValue = axis2Value
+		tempInstance.customValue = axis3Value
+		tempInstance.setInterpolationCustom1_(axis4Value)
+		tempInstance.setInterpolationCustom2_(axis5Value)
+		tempInstance.setInterpolationCustom3_(axis6Value)
 		self.tempInstance = tempInstance
 		
 		Glyphs.redraw()
 
 
-	# Slider actions use the sliderUpdate function
+	# Slider actions use the sliderUpdate method
 	@objc.IBAction
 	def slider1_(self, sender):
 		self.sliderUpdate()
@@ -188,6 +226,14 @@ class viewHOI(ReporterPlugin):
 
 	@objc.IBAction
 	def slider4_(self, sender):
+		self.sliderUpdate()
+
+	@objc.IBAction
+	def slider5_(self, sender):
+		self.sliderUpdate()
+
+	@objc.IBAction
+	def slider6_(self, sender):
 		self.sliderUpdate()
 
 	# reset selection
@@ -205,6 +251,48 @@ class viewHOI(ReporterPlugin):
 		else:
 			self.showFuture = True
 		Glyphs.redraw()
+
+	@objc.IBAction
+	def sync1_(self, sender):
+		if globals()['check1'] == True:
+			globals()['check1'] = False
+		else:
+			globals()['check1'] = True
+
+	@objc.IBAction
+	def sync2_(self, sender):
+		if globals()['check2'] == True:
+			globals()['check2'] = False
+		else:
+			globals()['check2'] = True
+
+	@objc.IBAction
+	def sync3_(self, sender):
+		if globals()['check3'] == True:
+			globals()['check3'] = False
+		else:
+			globals()['check3'] = True
+
+	@objc.IBAction
+	def sync4_(self, sender):
+		if globals()['check4'] == True:
+			globals()['check4'] = False
+		else:
+			globals()['check4'] = True
+
+	@objc.IBAction
+	def sync5_(self, sender):
+		if globals()['check5'] == True:
+			globals()['check5'] = False
+		else:
+			globals()['check5'] = True
+
+	@objc.IBAction
+	def sync6_(self, sender):
+		if globals()['check6'] == True:
+			globals()['check6'] = False
+		else:
+			globals()['check6'] = True
 
 	# generate nodes in preview
 	def roundDotForPoint( self, thisPoint, markerWidth ):
@@ -227,6 +315,7 @@ class viewHOI(ReporterPlugin):
 
 		if diff > 180:
 			diff = 360 - diff
+
 		if diff >= (self.angleTolerance * 2):
 			redValue = 1.0
 			greenValue = 0.0
@@ -240,7 +329,7 @@ class viewHOI(ReporterPlugin):
 		return (redValue, greenValue)
 
 
-	# Start sync layers defs ———————————————————————————————————————————————————————————————————————
+# Start sync layers defs ———————————————————————————————————————————————————————————————————————
 	# These functions are currently now being used...too slow
 	# need to make currentGlyph a class variable rather than a local one
 	def getFullName(self, layerName):
@@ -304,20 +393,23 @@ class viewHOI(ReporterPlugin):
 			
 			currentGlyph.layers[bName].paths[0].nodes[node.index].position = currentGlyph.layers[hoiName].paths[node.index].nodes[3].position
 
-	# End sync layers defs —————————————————————————————————————————————————————————————————————————
+# End sync layers defs —————————————————————————————————————————————————————————————————————————
 
 	# There should be an option in the interface to check off which axis you can preview along
 	# This should work in tandem with the HOI selection to allow multiple axes to be previewed at the same time
 	def showAll(self, layer, currentGlyphName, pathIndex, interpolatedIndex, nodeScale):
 		# Can iterate here to view the angle of the point at intervals ahead and behind the current preview
-		futureTempInstance = layer.parent.parent.instances[0].copy()
+		futureTempInstance = self.font.instances[0].copy()
 		futureTempInstance.name = "futuretempInstance"
-		futureTempInstance.weightValue = self.weightValue
-		futureTempInstance.widthValue = self.slantValue
-		futureTempInstance.setInterpolationCustom3_(self.monoValue)
+		futureTempInstance.weightValue = axis1Value
+		futureTempInstance.widthValue = axis2Value
+
+		# TODO: these should be set to axis#Values like the rest of them, and then choosing a preview axis will decide which ones become zero
 		futureTempInstance.customValue = 0
 		futureTempInstance.setInterpolationCustom1_(0)
 		futureTempInstance.setInterpolationCustom2_(0)
+
+		futureTempInstance.setInterpolationCustom3_(axis6Value)
 
 		# If this can be faster then the range can be more to show smaller increments, or show more points at once
 		for i in range(20):
@@ -360,28 +452,25 @@ class viewHOI(ReporterPlugin):
 
 		
 	def foreground(self, layer):
-		if layer.parent.parent != self.font:
+		if self.font != Glyphs.font:
 				self.setup = True
 
 		if self.setup == True:
-			self.font = layer.parent.parent
+			self.font = Glyphs.font
 			iterAxes = range(len(self.font.axes))
 			self.makeAxisVariables(self.font, iterAxes)
 			self.setAxisExtremes(self.font, iterAxes)
 			self.setup = False
 
-
-		# is this necessary?
-		self.italicValue = self.slider3.floatValue()
-
-		tempInstance = layer.parent.parent.instances[0].copy()
+		# move this to a method? then store in a variable with all the relevant axes values
+		tempInstance = self.font.instances[0].copy()
 		tempInstance.name = "tempInstance"
-		tempInstance.weightValue = self.weightValue
-		tempInstance.widthValue = self.slantValue
-		tempInstance.customValue = self.italicValue
-		tempInstance.setInterpolationCustom1_(self.italicValue)
-		tempInstance.setInterpolationCustom2_(self.italicValue)
-		tempInstance.setInterpolationCustom3_(self.monoValue)
+		tempInstance.weightValue = axis1Value
+		tempInstance.widthValue = axis2Value
+		tempInstance.customValue = axis3Value
+		tempInstance.setInterpolationCustom1_(axis4Value)
+		tempInstance.setInterpolationCustom2_(axis5Value)
+		tempInstance.setInterpolationCustom3_(axis6Value)
 
 		currentGlyphName = layer.parent.name
 		masterLayer = layer.parent.layers[layer.associatedMasterId]
@@ -391,9 +480,6 @@ class viewHOI(ReporterPlugin):
 		cx2 = None
 		cy2 = None
 
-		# Need to deprecate this
-		tempFont = tempInstance.interpolatedFontProxy.glyphs[currentGlyphName].layers[0].paths[0]
-
 		# For more than one path
 		tempFontLayer = tempInstance.interpolatedFontProxy.glyphs[currentGlyphName].layers[0]
 
@@ -402,6 +488,7 @@ class viewHOI(ReporterPlugin):
 
 		# Draw glyph preview  ——————————————————————————————————————————————————————————————————————————————————————
 
+		# Move this to its own method?? parameters (self, tempFontLayer)
 		for path in masterLayer.paths:
 			tSub = NSBezierPath.bezierPath()
 
@@ -440,7 +527,6 @@ class viewHOI(ReporterPlugin):
 		t.fill()
 
 		# currentState = layer.paths[0]
-
 		# Adding a state variable and an if statement makes this not as responsive as I'd like
 		# if re.match("HOI$", layer.name) != None:
 		# 	self.syncToHOI("Regular", "C1", "D1", "B", "B HOI")
@@ -457,13 +543,11 @@ class viewHOI(ReporterPlugin):
 
 
 
-		# Draw nodes + lines between nodes for angle/kink proofing ———————————————————————————————————————————————
-
+		# Draw nodes + lines between selected nodes for angle/kink proofing ———————————————————————————————————————————
 		p = NSBezierPath.bezierPath()
-		scale = layer.parent.parent.currentTab.scale
+		scale = self.font.currentTab.scale
 		lineScale = 0.0 / scale
 		nodeScale = 8.0 / scale
-		# (1) Adding code for showing nodes and changing color based on angle
 
 		# VF preview selection
 		if self.selection == []:
@@ -582,48 +666,6 @@ class viewHOI(ReporterPlugin):
 		NSColor.blueColor().set()
 		p.setLineWidth_(lineScale)
 		p.stroke()
-
-	# def inactiveLayer(self, layer):
-	# 	NSColor.redColor().set()
-	# 	if layer.paths:
-	# 		layer.bezierPath.fill()
-	# 	if layer.components:
-	# 		for component in layer.components:
-	# 			component.bezierPath.fill()
-
-	# def preview(self, layer):
-	# 	NSColor.blueColor().set()
-	# 	if layer.paths:
-	# 		layer.bezierPath.fill()
-	# 	if layer.components:
-	# 		for component in layer.components:
-	# 			component.bezierPath.fill()
-
-	
-	# def doSomething(self):
-	# 	print 'Just did something'
-		
-	# def conditionalContextMenus(self):
-
-	# 	# Empty list of context menu items
-	# 	contextMenus = []
-
-	# 	# Execute only if layers are actually selected
-	# 	if Glyphs.font.selectedLayers:
-	# 		layer = Glyphs.font.selectedLayers[0]
-			
-	# 		# Exactly one object is selected and it’s an anchor
-	# 		if len(layer.selection) == 1 and type(layer.selection[0]) == GSAnchor:
-					
-	# 			# Add context menu item
-	# 			contextMenus.append({'name': '2nd View', 'view': self.sliderView})
-	# 			contextMenus.append({'name': '2nd View', 'view': self.slider})
-
-	# 	# Return list of context menu items
-	# 	return contextMenus
-
-	# def doSomethingElse(self):
-	# 	print 'Just did something else'
 
 	def __file__(self):
 		"""Please leave this method unchanged"""
