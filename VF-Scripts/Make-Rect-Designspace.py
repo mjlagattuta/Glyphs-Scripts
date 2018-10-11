@@ -19,16 +19,18 @@ wdthMin = 0.0
 wghtWideMax = 232.0
 wghtCondMax = 193.0
 
-# Set this if using a 6 master setup with equal middle masters
-wghtMid = 0.0
-
 # Light Extended and Light Condensed original values
 wghtWideMin = 34.0
 wghtCondMin = 34.0
 
+# Set these if using a 6 master setup with equal middle masters
+wghtMid = 0.0
+wghtCondMidNew = wghtCondMin + ((wghtMid - wghtCondMin) / (wghtCondMax - wghtCondMin)) * (wghtWideMax - wghtCondMin)
+
 # Light Extended master index + Condensed Bold master index (starts from 0)
 wideLightIndex = 2
 condBoldIndex = 1
+conMidIndex = 1
 
 # Set Variables #
 #################
@@ -44,22 +46,9 @@ for instance in font.instances:
 		# Original weight
 		oldWght = instance.weightValue
 		
-		# For 6 master setups: Light Regular + Bold
-		if len(font.masters) == 6:
-			# Assumes middle weights are equal across widths
-			if oldWght < wghtMid:
-				newWght = round( wghtCondMin + ( ((instance.weightValue - wghtIntrMin) / (wghtMid - wghtIntrMin)) * (wghtMid - wghtCondMin) ) )
-			else:
-				newWght = round( wghtMid + ( ((instance.weightValue - wghtMid) / (wghtIntrMax - wghtMid)) * (wghtWideMax - wghtMid) ) )
-			# Compare values to ensure that weights were not being extrapolated beyond wghtIntrMax or wghtInterMin
-			print oldWght, wghtIntrMin, wghtIntrMax, newWght
-		# For 4 master setups: Light + Bold
-		elif len(font.masters) == 4:
-			newWght = round( wghtCondMin + ( ((instance.weightValue - wghtIntrMin) / (wghtIntrMax - wghtIntrMin)) * (wghtWideMax - wghtCondMin)))
-			# Compare values to ensure that weights were not being extrapolated beyond wghtIntrMax or wghtInterMin
-			print oldWght, wghtIntrMin, wghtIntrMax, newWght
-		else:
-			print "Unrecognized Master Setup"
+		newWght = round( wghtCondMin + ( ((instance.weightValue - wghtIntrMin) / (wghtIntrMax - wghtIntrMin)) * (wghtWideMax - wghtCondMin)))
+		# Compare values to ensure that weights were not being extrapolated beyond wghtIntrMax or wghtInterMin
+		print oldWght, wghtIntrMin, wghtIntrMax, newWght
 			
 		# Adds 'before and after' layers to the first master layer for proofing to see if designspace was properly scaled
 		if nonDestructive == True:
@@ -70,6 +59,8 @@ for instance in font.instances:
 			# Modify master locations for rectangualar desgin-space
 			font.masters[wideLightIndex].setWeightValue_(wghtCondMin)
 			font.masters[condBoldIndex].setWeightValue_(wghtWideMax)
+			if len(font.masters) == 6:
+				font.masters[condMidIndex].setWeightValue_(wghtCondMidNew)
 			
 			# Create a new instance
 			testInstance = instance.copy()
@@ -82,6 +73,8 @@ for instance in font.instances:
 			# Reset master locations
 			font.masters[wideLightIndex].setWeightValue_(wghtWideMin)
 			font.masters[condBoldIndex].setWeightValue_(wghtCondMax)
+			if len(font.masters) == 6:
+				font.masters[condMidIndex].setWeightValue_(wghtMid)
 			
 			# Create a new layer in the active glyph for the old outline named accordingly
 			newLayerOld = font.glyphs[currentGlyphName].layers[0].copy()
