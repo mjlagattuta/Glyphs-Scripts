@@ -208,3 +208,92 @@ for left in font.glyphs:
 				pass
 	else:
 		pass
+
+
+
+# ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+# ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+# —————————————————————————————————— Macro for testing script on a pair by pair basis ——————————————————————————————————————
+# ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+# ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+
+# font = Glyphs.font
+# import re
+
+# # Tester for kern condenser script
+
+# def correctKern(leftGlyph, rightGlyph, kernValue):
+# 	narrow = False
+# 	glyphRefLeft = re.sub( ',.*', '', re.sub( '\(\s*', '', re.sub( '\n', '', str(Glyphs.ligatureComponents(leftGlyph)))))
+# 	glyphRefRight = re.sub( ',.*', '', re.sub( '\(\s*', '', re.sub( '\n', '', str(Glyphs.ligatureComponents(rightGlyph)))))
+# 	if glyphRefLeft != 'None' and glyphRefLeft != "idotless" and glyphRefLeft != "jdotless":
+# 		leftRefName = glyphRefLeft
+# 	elif glyphRefLeft == "idotless":
+# 		leftRefName = "i"
+# 		narrow = True
+# 	elif glyphRefLeft == "jdotless":
+# 		leftRefName = "j"
+# 		narrow = True
+# 	else:
+# 		try:
+# 			leftRefName = font.glyphs[leftGlyph].layers[0].components[0].name
+# 		except:
+# 			leftRefName = leftGlyph
+	
+# 	if glyphRefRight != 'None' and glyphRefRight != "idotless" and glyphRefRight != "jdotless":
+# 		rightRefName = glyphRefRight
+# 	elif glyphRefRight == "idotless":
+# 		rightRefName = "i"
+# 		narrow = True
+# 	elif glyphRefRight == "jdotless":
+# 		rightRefName = "j"
+# 		narrow = True
+# 	else:
+# 		try:
+# 			rightRefName = font.glyphs[rightGlyph].layers[0].components[0].name
+# 		except:
+# 			rightRefName = rightGlyph
+		
+# 	if leftRefName == leftGlyph and rightRefName == rightGlyph:
+# 		addKern = True
+# 	else:
+# 		addKern = False
+		
+# 	if font.kerningForPair(font.selectedFontMaster.id, font.glyphs[leftRefName].rightKerningKey, font.glyphs[rightRefName].leftKerningKey) < 10000:
+# 		refKernValue = font.kerningForPair(font.selectedFontMaster.id, font.glyphs[leftRefName].rightKerningKey, font.glyphs[rightRefName].leftKerningKey)
+# 	else:
+# 		refKernValue = font.kerningForPair(font.selectedFontMaster.id, leftRefName, rightRefName)
+	
+# 	# if there is a reference kern value
+# 	if refKernValue < 10000:
+# 		# if this kern is 
+# 		if kernValue >= (refKernValue - tolerance) and kernValue <= (refKernValue + tolerance):
+# 			newKernValue = refKernValue
+# 			removeKern = True
+# 		elif addKern == False:# and narrow == False:
+# 			newKernValue = refKernValue
+# 			removeKern = True
+# 		else:
+# 			newKernValue = kernValue
+# 			removeKern = False
+# 	else:
+# 		if kernValue >= (0 - tolerance) and kernValue <= (0 + tolerance):
+# 			newKernValue = refKernValue
+# 			removeKern = True
+# 		elif addKern == False:# and narrow == False:
+# 			newKernValue = refKernValue
+# 			removeKern = True
+# 		else:
+# 			newKernValue = kernValue
+# 			removeKern = False
+		
+# 	print leftRefName, rightRefName, refKernValue
+# 	return newKernValue, removeKern, addKern
+	
+# left = "r"
+# right = "i"
+	
+# kernValue = font.kerningForPair(font.selectedFontMaster.id, left, right)
+
+# print left, right, kernValue	
+# print correctKern(left, right, kernValue)
