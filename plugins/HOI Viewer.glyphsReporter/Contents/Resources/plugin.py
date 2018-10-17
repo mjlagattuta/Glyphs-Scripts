@@ -401,18 +401,28 @@ class viewHOI(ReporterPlugin):
 		# Can iterate here to view the angle of the point at intervals ahead and behind the current preview
 		futureTempInstance = self.font.instances[0].copy()
 		futureTempInstance.name = "futuretempInstance"
-		futureTempInstance.weightValue = axis1Value
-		futureTempInstance.widthValue = axis2Value
+
+		preview = {"axis1": "axis1Val", "axis2": "axis2Val", "axis3": "axis3Val", "axis4": "axis4Val", "axis5": "axis5Val", "axis6": "axis6Val",
+				   "axis1Val": axis1Value, "axis2Val": axis2Value, "axis3Val": axis3Value, "axis4Val": axis4Value, "axis5Val": axis5Value, "axis6Val": axis6Value,
+				   "preview": 0.0}
 
 		# TODO: these should be set to axis#Values like the rest of them, and then choosing a preview axis will decide which ones become zero
-		futureTempInstance.customValue = 0
-		futureTempInstance.setInterpolationCustom1_(0)
-		futureTempInstance.setInterpolationCustom2_(0)
+		for i in range(len(self.font.axes)):
+			if globals()['check%s' % (i + 1)] == True:
+				axisString = 'axis%s' % (i + 1)
+				preview.update({axisString: "preview"})
 
-		futureTempInstance.setInterpolationCustom3_(axis6Value)
+		futureTempInstance.weightValue = preview[preview["axis1"]]
+		futureTempInstance.widthValue = preview[preview["axis2"]]
+		futureTempInstance.customValue = preview[preview["axis3"]]
+		futureTempInstance.setInterpolationCustom1_(preview[preview["axis1"]])
+		futureTempInstance.setInterpolationCustom2_(preview[preview["axis1"]])
+		futureTempInstance.setInterpolationCustom3_(preview[preview["axis1"]])
 
 		# If this can be faster then the range can be more to show smaller increments, or show more points at once
 		for i in range(20):
+			increment = i * 50
+			preview.update({"preview": increment})
 			# For line visualization
 			# if i == 0:
 			# 	futureFontLayer = futureTempInstance.interpolatedFontProxy.glyphs[currentGlyphName].layers[0]
@@ -425,9 +435,12 @@ class viewHOI(ReporterPlugin):
 			# pNode = NSBezierPath.bezierPath()
 			# pNode.moveToPoint_(NSMakePoint(x1, y1))
 
-			futureTempInstance.customValue = i * 50
-			futureTempInstance.setInterpolationCustom1_(i * 50)
-			futureTempInstance.setInterpolationCustom2_(i * 50)
+			futureTempInstance.weightValue = preview[preview["axis1"]]
+			futureTempInstance.widthValue = preview[preview["axis2"]]
+			futureTempInstance.customValue = preview[preview["axis3"]]
+			futureTempInstance.setInterpolationCustom1_(preview[preview["axis4"]])
+			futureTempInstance.setInterpolationCustom2_(preview[preview["axis5"]])
+			futureTempInstance.setInterpolationCustom3_(preview[preview["axis6"]])
 
 			futureFontLayer = futureTempInstance.interpolatedFontProxy.glyphs[currentGlyphName].layers[0]
 
