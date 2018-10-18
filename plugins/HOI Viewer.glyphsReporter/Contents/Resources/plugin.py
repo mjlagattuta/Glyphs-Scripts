@@ -406,11 +406,15 @@ class viewHOI(ReporterPlugin):
 				   "axis1Val": axis1Value, "axis2Val": axis2Value, "axis3Val": axis3Value, "axis4Val": axis4Value, "axis5Val": axis5Value, "axis6Val": axis6Value,
 				   "preview": 0.0}
 
+		resolution = 20
+		increment = 50.0
+
 		# TODO: these should be set to axis#Values like the rest of them, and then choosing a preview axis will decide which ones become zero
 		for i in range(len(self.font.axes)):
 			if globals()['check%s' % (i + 1)] == True:
 				axisString = 'axis%s' % (i + 1)
 				preview.update({axisString: "preview"})
+				increment = (globals()['axis%sMax' % (i + 1)]) / resolution
 
 		futureTempInstance.weightValue = preview[preview["axis1"]]
 		futureTempInstance.widthValue = preview[preview["axis2"]]
@@ -420,9 +424,9 @@ class viewHOI(ReporterPlugin):
 		futureTempInstance.setInterpolationCustom3_(preview[preview["axis1"]])
 
 		# If this can be faster then the range can be more to show smaller increments, or show more points at once
-		for i in range(20):
-			increment = i * 50
-			preview.update({"preview": increment})
+		for i in range(resolution):
+			plotPoint = i * increment
+			preview.update({"preview": plotPoint})
 			# For line visualization
 			# if i == 0:
 			# 	futureFontLayer = futureTempInstance.interpolatedFontProxy.glyphs[currentGlyphName].layers[0]
