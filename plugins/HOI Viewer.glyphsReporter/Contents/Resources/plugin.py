@@ -294,7 +294,7 @@ class viewHOI(ReporterPlugin):
 		else:
 			globals()['check6'] = True
 
-	# generate nodes in preview
+	# generate nodes on canvas
 	def roundDotForPoint( self, thisPoint, markerWidth ):
 		"""
 		from Show Angled Handles by MekkaBlue
@@ -303,13 +303,37 @@ class viewHOI(ReporterPlugin):
 		myRect = NSRect( ( thisPoint.x - markerWidth * 0.5, thisPoint.y - markerWidth * 0.5 ), ( markerWidth, markerWidth ) )
 		return NSBezierPath.bezierPathWithOvalInRect_(myRect)
 
+	def getDelta(self, node, node2, previous):
+		if previous == True:
+			previous = True
+			dx = node.x - node2.x
+			dy = node.y - node2.y
+			node3 = node.parent.nodes[(node2.index - 1)]
+		else:
+			previous = False
+			dx = node2.x - node.x
+			dy = node2.y - node.y
+			node3 = node.parent.nodes[(node2.index + 1)]
+
+		if dy == 0.0 and dx == 0.0:
+			return self.getDelta(node, node3, previous)
+		else:
+			print node.x, node2.x, node.y, node2.y
+			print dx, dy
+			return [dx, dy]
+
 	# node color changes based on angle (change the 'angleTolerance' variable)
 	def nodeColor(self, nodePrev, node, nodeNext):
-		dx1 = node.x - nodePrev.x
-		dy1 = node.y - nodePrev.y
+		deltaPrev = self.getDelta(node, nodePrev, True)
+		deltaNext = self.getDelta(node, nodeNext, False)
+
+		dx1 = deltaPrev[0]
+		dy1 = deltaPrev[1]
+
+		dx2 = deltaNext[0] 
+		dy2 = deltaNext[1]
+
 		angle1 = math.degrees(math.atan2(dy1, dx1))
-		dx2 = nodeNext.x - node.x 
-		dy2 = nodeNext.y - node.y
 		angle2 = math.degrees(math.atan2(dy2, dx2))
 		diff = abs(angle2 - angle1)
 
