@@ -10,6 +10,8 @@ Works based on the following assumptions:
 	• Instances are named conventionally
 """
 
+import re
+
 font = Glyphs.font
 
 cssMin = float(font.masters[0].customParameters['Axis Location'][0]['Location'])
@@ -24,6 +26,10 @@ def convertWeight(inputWeight):
 	return outputWeight
 	
 table = "<avar>\n  <segment axis=\"wght\">\n"
+
+def stripItalic(name):
+	name = re.sub(' Italic', '', name)
+	return name
 	
 
 for instance in font.instances:
@@ -33,25 +39,25 @@ for instance in font.instances:
 
 		
 		# css weight based on canonical naming
-		if instance.name  == "Thin":
+		if stripItalic(instance.name)  == "Thin":
 			cssWeight = 100
-		elif instance.name  == "ExtraLight" or instance.name == "UltraLight":
+		elif stripItalic(instance.name)  == "ExtraLight" or stripItalic(instance.name) == "UltraLight":
 			cssWeight = 200
-		elif instance.name  == "Light":
+		elif stripItalic(instance.name)  == "Light":
 			cssWeight = 300
-		elif instance.name  == "Regular":
+		elif stripItalic(instance.name)  == "Regular":
 			cssWeight = 400
-		elif instance.name  == "Medium":
+		elif stripItalic(instance.name)  == "Medium":
 			cssWeight = 500
-		elif instance.name  == "SemiBold":
+		elif stripItalic(instance.name)  == "SemiBold":
 			cssWeight = 600
-		elif instance.name  == "Bold":
+		elif stripItalic(instance.name)  == "Bold":
 			cssWeight = 700
-		elif instance.name  == "ExtraBold" or instance.name == "UltraBold":
+		elif stripItalic(instance.name)  == "ExtraBold" or stripItalic(instance.name) == "UltraBold":
 			cssWeight = 800
-		elif instance.name  == "Black" or instance.name == "Heavy":
+		elif stripItalic(instance.name)  == "Black" or stripItalic(instance.name) == "Heavy":
 			cssWeight = 900
-		elif instance.name  == "Hairline":
+		elif stripItalic(instance.name)  == "Hairline":
 			cssWeight = 0
 		else:
 			cssWeight = 1000
@@ -66,7 +72,7 @@ for instance in font.instances:
 			fromValue = (cssWeight - cssDefault) / (cssMax - cssDefault)
 		
 		# print values
-		print instance.name
+		print stripItalic(instance.name)
 		print "Original weight = %f" % instance.weightValue
 		print "Scaled Weight = %f" % scaledWeight
 		print "CSS weight = %f" % cssWeight
