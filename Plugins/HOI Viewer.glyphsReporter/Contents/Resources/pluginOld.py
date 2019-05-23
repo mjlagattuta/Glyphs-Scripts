@@ -21,14 +21,12 @@ import re
 
 class viewHOI(ReporterPlugin):
 	# The dialog view (e.g., panel or window)
-	# TODO: currently this is a right click context menu but may make more sense as a persistent window
 	sliderView = objc.IBOutlet()
 
-	# The sliders and UI elements placed inside the view
+	# The sliders and button placed inside the view
 	# TODO: slider number should be based on number of axes (there will be no limit with Glyphs App 3.0)
-	## can use a for loop to gen them:: 	 globals()['slider%s' % (i + 1)] = objc.IBOutlet()
-	## the issue is getting a variable amount of slider views to work and a variable number of methods using @objc.IBAction
-	# TODO: Add options to change the type of preview shown (i.e. turn node view on and off, outline and fill view, etc.)
+	# can use a for loop to gen them:: 	 globals()['slider%s' % (i + 1)] = objc.IBOutlet()
+	# the issue is getting a variable amount of slider views to work and a variable number of methods using @objc.IBAction
 	slider1 = objc.IBOutlet()
 	slider2 = objc.IBOutlet() 
 	slider3 = objc.IBOutlet() 
@@ -46,14 +44,13 @@ class viewHOI(ReporterPlugin):
 	button2 = objc.IBOutlet()
 
 	# Axis variables
-	# DONE: Fetch these values
-	# TODO: Determine number of axes(important for Glyphs App 3)
-	globals()['axis1Value'] = 100.0
+	# TODO eventually: Fetch these values(DONE) + determine number of axes(important for Glyphs App 3)
+	globals()['axis1Value'] = 84.0
 	globals()['axis2Value'] = 0.0
 	globals()['axis3Value'] = 0.0
 	globals()['axis4Value'] = 0.0
 	globals()['axis5Value'] = 0.0
-	globals()['axis6Value'] = 0.0
+	globals()['axis6Value'] = 1000.0
 
 	globals()['check1'] = False
 	globals()['check2'] = False
@@ -62,20 +59,13 @@ class viewHOI(ReporterPlugin):
 	globals()['check5'] = False
 	globals()['check6'] = False
 
-	font = Glyphs.font
-
 	selection = []
 	nodeType = []
 	showFuture = False
-
-#########  Set Tolerance  #########
-
-	angleTolerance = 1.0 
-
-#########  Set Tolerance  #########
+	angleTolerance = 1.0  # Tolerance is in degrees and anything above this value will appear red, anything below it will approach yellow and then green at 0.0
+	font = Glyphs.font
 
 	setup = True
-
 	# Set up variables for the name of each axis "axis" + "#" starting from 1
 	# Also makes variables for Min and Max values
 	def makeAxisVariables(self, font, iterAxes):
@@ -127,7 +117,6 @@ class viewHOI(ReporterPlugin):
 						if float(item["Location"]) > float(globals()['axis%sMax' % (index + 1)]):
 							globals()['axis%sMax' % (index + 1)] = float(item["Location"])
 
-	# Can maybe truncate this
 	def setAxisExtremes(self, font, iterAxes):
 		for i in iterAxes:
 			# Set axis values
@@ -138,37 +127,37 @@ class viewHOI(ReporterPlugin):
 			if i == 0:
 				self.slider1.setMinValue_(globals()['axis%sMin' % (i + 1)])
 				self.slider1.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
+				print "slider1"
 				print globals()['axis%sMin' % (i + 1)]
 				print globals()['axis%sMax' % (i + 1)]
 			elif i == 1:
 				self.slider2.setMinValue_(globals()['axis%sMin' % (i + 1)])
 				self.slider2.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
+				print "slider2"
 				print globals()['axis%sMin' % (i + 1)]
 				print globals()['axis%sMax' % (i + 1)]
 			elif i == 2:
 				self.slider3.setMinValue_(globals()['axis%sMin' % (i + 1)])
 				self.slider3.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
+				print "slider3"
 				print globals()['axis%sMin' % (i + 1)]
 				print globals()['axis%sMax' % (i + 1)]
 			elif i == 3:
 				self.slider4.setMinValue_(globals()['axis%sMin' % (i + 1)])
 				self.slider4.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
+				print "slider4"
 				print globals()['axis%sMin' % (i + 1)]
 				print globals()['axis%sMax' % (i + 1)]
 			elif i == 4:
 				self.slider5.setMinValue_(globals()['axis%sMin' % (i + 1)])
 				self.slider5.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
+				print "slider5"
 				print globals()['axis%sMin' % (i + 1)]
 				print globals()['axis%sMax' % (i + 1)]
 			elif i == 5:
 				self.slider6.setMinValue_(globals()['axis%sMin' % (i + 1)])
 				self.slider6.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
+				print "slider6"
 				print globals()['axis%sMin' % (i + 1)]
 				print globals()['axis%sMax' % (i + 1)]
 
@@ -180,18 +169,17 @@ class viewHOI(ReporterPlugin):
 		self.generalContextMenus = [{'name': 'HOI Viewer', 'view': self.sliderView}]
 
 	# Updates the temp instance and the drawings based on the sliders
-	# DONE: Figure out how to pull the state of the check boxes and then set values equal based on it
-	# TODO: use a dictionary to link axes rather than iterating through them
+	# TODO: Figure out how to pull the state of the check boxes and then set values equal based on it
+	# Maybe use a dictionary to link axes?
 	def sliderUpdate(self):
 		sliderList = [self.slider1, self.slider2, self.slider3, self.slider4, self.slider5, self.slider6]
-		keySlider = None
 
+		keySlider = None
 		for i in range(len(self.font.axes)):
 			if globals()['check%s' % (i + 1)] == True:
 				keySlider = i
 				break
 
-		# TODO: have sliders that are synced have UI feedback
 		for i in range(len(self.font.axes)):
 			# if keySlider != None:
 			# 	keySliderAlias = vars(viewHOI)['slider%s' % (keySlider)])
@@ -201,16 +189,26 @@ class viewHOI(ReporterPlugin):
 			else:
 				globals()['axis%sValue' % (i + 1)] = sliderList[i].floatValue()
 
-		tempInstance = GSInstance()
+		# axis1Value = self.slider1.floatValue()
+		# axis2Value = self.slider2.floatValue()
+		# axis3Value = self.slider3.floatValue()
+		# axis4Value = self.slider4.floatValue()
+		# axis5Value = self.slider5.floatValue()
+		# axis6Value = self.slider6.floatValue()
+
+		layer = Glyphs.font.selectedLayers[0]
+		currentGlyphName = layer.parent.name
+
+		tempInstance = self.font.instances[0].copy()
 		tempInstance.name = "tempInstance"
 		tempInstance.weightValue = axis1Value
 		tempInstance.widthValue = axis2Value
 		tempInstance.customValue = axis3Value
 		tempInstance.setInterpolationCustom1_(axis4Value)
-		tempInstance.setInterpolationCustom3_(axis6Value)
 		tempInstance.setInterpolationCustom2_(axis5Value)
+		tempInstance.setInterpolationCustom3_(axis6Value)
 		self.tempInstance = tempInstance
-
+		
 		Glyphs.redraw()
 
 
@@ -246,7 +244,7 @@ class viewHOI(ReporterPlugin):
 		self.nodeType = []
 		Glyphs.redraw()
 
-	# Toggle axis preview
+	# Toggle future
 	@objc.IBAction
 	def button2_(self, sender):
 		if self.showFuture == True:
@@ -306,7 +304,6 @@ class viewHOI(ReporterPlugin):
 		myRect = NSRect( ( thisPoint.x - markerWidth * 0.5, thisPoint.y - markerWidth * 0.5 ), ( markerWidth, markerWidth ) )
 		return NSBezierPath.bezierPathWithOvalInRect_(myRect)
 
-	# If nodes are stacked calculate using the next node
 	def getDelta(self, node, node2, previous):
 		if previous == True:
 			previous = True
@@ -322,9 +319,11 @@ class viewHOI(ReporterPlugin):
 		if dy == 0.0 and dx == 0.0:
 			return self.getDelta(node, node3, previous)
 		else:
+			print node.x, node2.x, node.y, node2.y
+			print dx, dy
 			return [dx, dy]
 
-	# Node color changes based on angle (change the 'angleTolerance' variable)
+	# node color changes based on angle (change the 'angleTolerance' variable)
 	def nodeColor(self, nodePrev, node, nodeNext):
 		deltaPrev = self.getDelta(node, nodePrev, True)
 		deltaNext = self.getDelta(node, nodeNext, False)
@@ -339,7 +338,6 @@ class viewHOI(ReporterPlugin):
 		angle2 = math.degrees(math.atan2(dy2, dx2))
 		diff = abs(angle2 - angle1)
 
-		# Ensure angle is relative
 		if diff > 180:
 			diff = 360 - diff
 
@@ -354,13 +352,11 @@ class viewHOI(ReporterPlugin):
 			greenValue = 1.0 - ((diff % self.angleTolerance) / self.angleTolerance)
 
 		return (redValue, greenValue)
-		# return (1.0, 1.0)
 
 
 # Start sync layers defs ———————————————————————————————————————————————————————————————————————
-	# These functions are currently not being used...too slow
-	# TODO: make currentGlyph a class variable rather than a local one
-	# TODO: find a way to keep HOI layers in sync
+	# These functions are currently now being used...too slow
+	# need to make currentGlyph a class variable rather than a local one
 	def getFullName(self, layerName):
 		currentGlyph = Glyphs.font.selectedLayers[0].parent
 
@@ -424,43 +420,81 @@ class viewHOI(ReporterPlugin):
 
 # End sync layers defs —————————————————————————————————————————————————————————————————————————
 
-	# TODO: Preview axis should have separate checkboxes than syncing axes
-	# TODO: Preview should be based on the min and max value of each axis
-	def showAll(self, layer, currentGlyphName, pathIndex, interpolatedIndex, nodeScale, futureFontLayer):
-		x2 = futureFontLayer.paths[pathIndex].nodes[interpolatedIndex].x
-		y2 = futureFontLayer.paths[pathIndex].nodes[interpolatedIndex].y
+	# There should be an option in the interface to check off which axis you can preview along
+	# This should work in tandem with the HOI selection to allow multiple axes to be previewed at the same time
+	def showAll(self, layer, currentGlyphName, pathIndex, interpolatedIndex, nodeScale):
+		# Can iterate here to view the angle of the point at intervals ahead and behind the current preview
+		futureTempInstance = self.font.instances[0].copy()
+		futureTempInstance.name = "futuretempInstance"
 
-		ThisPoint = NSMakePoint(x2, y2)
+		preview = {"axis1": "axis1Val", "axis2": "axis2Val", "axis3": "axis3Val", "axis4": "axis4Val", "axis5": "axis5Val", "axis6": "axis6Val",
+				   "axis1Val": axis1Value, "axis2Val": axis2Value, "axis3Val": axis3Value, "axis4Val": axis4Value, "axis5Val": axis5Value, "axis6Val": axis6Value,
+				   "preview": 0.0}
 
-		pNode = NSBezierPath.bezierPath()
+		resolution = 20
+		increment = 50.0
 
-		# Changes node color based on angle
-		color = self.nodeColor(futureFontLayer.paths[pathIndex].nodes[interpolatedIndex - 1], 
-							   futureFontLayer.paths[pathIndex].nodes[interpolatedIndex],
-							   futureFontLayer.paths[pathIndex].nodes[interpolatedIndex + 1])
-		NSColor.colorWithCalibratedRed_green_blue_alpha_(color[0] ,color[1] , 0.0, 0.45).set()
+		# TODO: these should be set to axis#Values like the rest of them, and then choosing a preview axis will decide which ones become zero
+		for i in range(len(self.font.axes)):
+			if globals()['check%s' % (i + 1)] == True:
+				axisString = 'axis%s' % (i + 1)
+				preview.update({axisString: "preview"})
+				increment = (globals()['axis%sMax' % (i + 1)]) / resolution
 
-		# Line Viz
-		# x1 = futureFontLayer.paths[pathIndex].nodes[interpolatedIndex - 1].x
-		# y1 = futureFontLayer.paths[pathIndex].nodes[interpolatedIndex - 1].y
-		# startPoint = NSMakePoint(x1, y1)
-		# pNode.setLineWidth_(nodeScale)
-		# pNode.moveToPoint_(startPoint)
-		# pNode.lineToPoint_(ThisPoint)
-		# pNode.stroke()
+		futureTempInstance.weightValue = preview[preview["axis1"]]
+		futureTempInstance.widthValue = preview[preview["axis2"]]
+		futureTempInstance.customValue = preview[preview["axis3"]]
+		futureTempInstance.setInterpolationCustom1_(preview[preview["axis1"]])
+		futureTempInstance.setInterpolationCustom2_(preview[preview["axis1"]])
+		futureTempInstance.setInterpolationCustom3_(preview[preview["axis1"]])
 
-		# Node Viz
-		pNode.appendBezierPath_( self.roundDotForPoint( ThisPoint, nodeScale) )
-		pNode.fill()
+		# If this can be faster then the range can be more to show smaller increments, or show more points at once
+		for i in range(resolution):
+			plotPoint = i * increment
+			preview.update({"preview": plotPoint})
+			# For line visualization
+			# if i == 0:
+			# 	futureFontLayer = futureTempInstance.interpolatedFontProxy.glyphs[currentGlyphName].layers[0]
+			# 	x1 = futureFontLayer.paths[pathIndex].nodes[interpolatedIndex].x
+			# 	y1 = futureFontLayer.paths[pathIndex].nodes[interpolatedIndex].y
+			# else:
+			# 	x1 = x2
+			# 	y1 = y2
 
-	# MAYBE change this to background instead
-	def background(self, layer):
-		print "Start BG Draw"
+			# pNode = NSBezierPath.bezierPath()
+			# pNode.moveToPoint_(NSMakePoint(x1, y1))
+
+			futureTempInstance.weightValue = preview[preview["axis1"]]
+			futureTempInstance.widthValue = preview[preview["axis2"]]
+			futureTempInstance.customValue = preview[preview["axis3"]]
+			futureTempInstance.setInterpolationCustom1_(preview[preview["axis4"]])
+			futureTempInstance.setInterpolationCustom2_(preview[preview["axis5"]])
+			futureTempInstance.setInterpolationCustom3_(preview[preview["axis6"]])
+
+			futureFontLayer = futureTempInstance.interpolatedFontProxy.glyphs[currentGlyphName].layers[0]
+
+			x2 = futureFontLayer.paths[pathIndex].nodes[interpolatedIndex].x
+			y2 = futureFontLayer.paths[pathIndex].nodes[interpolatedIndex].y
+
+			ThisPoint = NSMakePoint(x2, y2)
+
+			# For point visualization
+			pNode = NSBezierPath.bezierPath()
+			pNode.appendBezierPath_( self.roundDotForPoint( ThisPoint, nodeScale) )
+
+			# Changes node color based on angle
+			NSColor.colorWithCalibratedRed_green_blue_alpha_(
+				self.nodeColor(futureFontLayer.paths[pathIndex].nodes[interpolatedIndex - 1],  futureFontLayer.paths[pathIndex].nodes[interpolatedIndex],  futureFontLayer.paths[pathIndex].nodes[interpolatedIndex + 1])[0] ,
+				self.nodeColor(futureFontLayer.paths[pathIndex].nodes[interpolatedIndex - 1],  futureFontLayer.paths[pathIndex].nodes[interpolatedIndex],  futureFontLayer.paths[pathIndex].nodes[interpolatedIndex + 1])[1] ,
+				0.0,
+				0.45).set()
+			# pNode.setLineWidth_(nodeScale)
+			# pNode.lineToPoint_(ThisPoint)
+			pNode.fill()
+
+		
+	def foreground(self, layer):
 		start = time.time()
-		currentGlyphName = layer.parent.name
-		masterLayer = layer.parent.layers[layer.associatedMasterId]
-
-		# MAYBE move these 2 'if' blockds into a method
 		if self.font != Glyphs.font:
 				self.setup = True
 
@@ -471,103 +505,34 @@ class viewHOI(ReporterPlugin):
 			self.setAxisExtremes(self.font, iterAxes)
 			self.setup = False
 
-		# MAYBE move this to a method and store in a variable with all the relevant axes values
-		startInstance = time.time()
+		# move this to a method? then store in a variable with all the relevant axes values
 		tempInstance = self.font.instances[0].copy()
 		tempInstance.name = "tempInstance"
 		tempInstance.weightValue = axis1Value
 		tempInstance.widthValue = axis2Value
 		tempInstance.customValue = axis3Value
 		tempInstance.setInterpolationCustom1_(axis4Value)
-		tempInstance.setInterpolationCustom3_(axis6Value)
-		tempInstance.setInterpolationCustom2_(axis5Value + 1)
 		tempInstance.setInterpolationCustom2_(axis5Value)
+		tempInstance.setInterpolationCustom3_(axis6Value)
 
+		currentGlyphName = layer.parent.name
+		masterLayer = layer.parent.layers[layer.associatedMasterId]
+
+		cx1 = None
+		cy1 = None
+		cx2 = None
+		cy2 = None
+
+		# For more than one path
 		tempFontLayer = tempInstance.interpolatedFontProxy.glyphs[currentGlyphName].layers[0]
-		endInstance = time.time() - startInstance
-		print "Copy + Update Instance Time:", endInstance
 
-		if self.showFuture == True:
-			previewProxies = []
-
-			futureTempInstance = tempInstance.copy()
-			futureTempInstance.name = "futuretempInstance"
-
-			preview = {"axis1": "axis1Val", "axis2": "axis2Val", "axis3": "axis3Val", "axis4": "axis4Val", "axis5": "axis5Val", "axis6": "axis6Val",
-					   "axis1Val": axis1Value, "axis2Val": axis2Value, "axis3Val": axis3Value, "axis4Val": axis4Value, "axis5Val": axis5Value, "axis6Val": axis6Value,
-					   "preview": 0.0}
-
-			resolution = 20
-			increment = 50.0
-
-			# DONE: these should be set to axis#Values like the rest of them, and then choosing a preview axis will decide which ones become zero
-			for i in range(len(self.font.axes)):
-				if globals()['check%s' % (i + 1)] == True:
-					axisString = 'axis%s' % (i + 1)
-					previewMin = globals()['axis%sMin' % (i + 1)]
-					# Sets up axis to reference the preview value
-					preview.update({axisString: "preview"})
-					increment = (globals()['axis%sMax' % (i + 1)] - globals()['axis%sMin' % (i + 1)]) / resolution
-
-			# If this can be faster, then the range can be more to show smaller increments, or show more points at once
-			print "Making Preview Proxies"
-			startProxies = time.time()
-			for i in range(resolution):
-				try:
-					plotPoint = previewMin + (i * increment)
-					preview.update({"preview": plotPoint})
-				except:
-					print "No axis set to preview"
-
-				futureTempInstance.weightValue = preview[preview["axis1"]]
-				futureTempInstance.widthValue = preview[preview["axis2"]]
-				futureTempInstance.customValue = preview[preview["axis3"]]
-				futureTempInstance.setInterpolationCustom1_(preview[preview["axis4"]])
-				futureTempInstance.setInterpolationCustom2_(preview[preview["axis5"]])
-				futureTempInstance.setInterpolationCustom3_(preview[preview["axis6"]])
-
-				# This is what slows things down
-				futureFontLayer = futureTempInstance.interpolatedFontProxy.glyphs[currentGlyphName].layers[0]
-
-				previewProxies.append(futureFontLayer)
-			print "Finished Making Proxies", time.time() - startProxies
-
-		# TODO: find a way to implement this in the foreground draw nodes loop. Should make it slightly faster
-		# def glyphPreview(self, masterLayer, pathIndex, node, tempFontLayer, tSub):
-		# 	if node.type == "offcurve":
-		# 		return
-
-		# 	tx2 = tempFontLayer.paths[pathIndex].nodes[node.index].x
-		# 	ty2 = tempFontLayer.paths[pathIndex].nodes[node.index].y
-
-		# 	if node.type == "line":
-		# 		tx1 = tempFontLayer.paths[pathIndex].nodes[node.index - 1].x
-		# 		ty1 = tempFontLayer.paths[pathIndex].nodes[node.index - 1].y
-		# 		tSub.moveToPoint_(NSMakePoint(tx1, ty1))
-
-		# 		tSub.lineToPoint_(NSMakePoint(tx2, ty2))
-		# 	else:
-		# 		tx1 = tempFontLayer.paths[pathIndex].nodes[node.index - 3].x
-		# 		ty1 = tempFontLayer.paths[pathIndex].nodes[node.index - 3].y
-		# 		tSub.moveToPoint_(NSMakePoint(tx1, ty1))
-
-		# 		cx1 = tempFontLayer.paths[pathIndex].nodes[node.index - 2].x
-		# 		cy1 = tempFontLayer.paths[pathIndex].nodes[node.index - 2].y
-		# 		cx2 = tempFontLayer.paths[pathIndex].nodes[node.index - 1].x
-		# 		cy2 = tempFontLayer.paths[pathIndex].nodes[node.index - 1].y
-		# 		tSub.curveToPoint_controlPoint1_controlPoint2_(NSMakePoint(tx2, ty2), NSMakePoint(cx1, cy1), NSMakePoint(cx2, cy2))
-
-		# Draw glyph preview  ——————————————————————————————————————————————————————————————————————————————————————
-		startVarPrev = time.time()
 		pathIndex = 0
 		t = NSBezierPath.bezierPath()
 
+		# Draw glyph preview  ——————————————————————————————————————————————————————————————————————————————————————
+
 		# Move this to its own method?? parameters (self, tempFontLayer)
 		for path in masterLayer.paths:
-			cx1 = None
-			cy1 = None
-			cx2 = None
-			cy2 = None
 			tSub = NSBezierPath.bezierPath()
 
 			tx1 = tempFontLayer.paths[pathIndex].nodes[-1].x
@@ -603,8 +568,6 @@ class viewHOI(ReporterPlugin):
 			NSColor.colorWithCalibratedRed_green_blue_alpha_(0.5, 0.5, 0.5, 0.4).set()
 
 		t.fill()
-		endVarPrev = time.time()
-		print "Draw Var Preview Time:", time.time() - startVarPrev
 
 		# currentState = layer.paths[0]
 		# Adding a state variable and an if statement makes this not as responsive as I'd like
@@ -625,15 +588,14 @@ class viewHOI(ReporterPlugin):
 
 		# Draw nodes + lines between selected nodes for angle/kink proofing ———————————————————————————————————————————
 		p = NSBezierPath.bezierPath()
-		t = NSBezierPath.bezierPath()
 		scale = self.font.currentTab.scale
 		lineScale = 0.0 / scale
 		nodeScale = 8.0 / scale
 
-
 		# VF preview selection
 		if self.selection == []:
 			pLine = NSBezierPath.bezierPath()
+
 			pathIndex = 0
 			for path in masterLayer.paths:
 				pathSelection = []
@@ -664,12 +626,8 @@ class viewHOI(ReporterPlugin):
 
 						# FUTURE block ————————————————————————————————————————————————————————————
 
-						
 						if self.showFuture == True and node.type != "offcurve":
-							drawFuture = time.time()
-							for proxy in previewProxies:
-								self.showAll(layer, currentGlyphName, pathIndex, interpolatedIndex, nodeScale, proxy)
-							print "Drew Future %s" % (time.time() - drawFuture)
+							self.showAll(layer, currentGlyphName, pathIndex, interpolatedIndex, nodeScale)
 
 						# FUTURE block ————————————————————————————————————————————————————————————
 
@@ -679,10 +637,11 @@ class viewHOI(ReporterPlugin):
 						pNode.appendBezierPath_( self.roundDotForPoint( ThisPoint, nodeScale ) )
 
 						# Changes node color based on angle
-						color = self.nodeColor(tempFontLayer.paths[pathIndex].nodes[interpolatedIndex - 1],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex + 1])
-
-						# Changes node color based on angle
-						NSColor.colorWithCalibratedRed_green_blue_alpha_(color[0] ,color[1] , 0.0, 1.00).set()
+						NSColor.colorWithCalibratedRed_green_blue_alpha_(
+							self.nodeColor(tempFontLayer.paths[pathIndex].nodes[interpolatedIndex - 1],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex + 1])[0] ,
+							self.nodeColor(tempFontLayer.paths[pathIndex].nodes[interpolatedIndex - 1],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex + 1])[1] ,
+							0.0,
+							1.0).set()
 						pNode.fill()
 
 						if node.type != "offcurve":
@@ -719,10 +678,7 @@ class viewHOI(ReporterPlugin):
 					# FUTURE block ————————————————————————————————————————————————————————————
 
 					if self.showFuture == True and self.nodeType[pathIndex][i] != "offcurve":
-						drawFuture = time.time()
-						for proxy in previewProxies:
-							self.showAll(layer, currentGlyphName, pathIndex, interpolatedIndex, nodeScale, proxy)
-						print "Drew Future %s" % (time.time() - drawFuture)
+						self.showAll(layer, currentGlyphName, pathIndex, interpolatedIndex, nodeScale)
 
 					# FUTURE block ————————————————————————————————————————————————————————————
 
@@ -733,10 +689,12 @@ class viewHOI(ReporterPlugin):
 					# (1) Adding code for showing nodes and changing color based on angle
 					pNode.appendBezierPath_( self.roundDotForPoint( ThisPoint, nodeScale ) )
 
-					color = self.nodeColor(tempFontLayer.paths[pathIndex].nodes[interpolatedIndex - 1],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex + 1])
-
 					# Changes node color based on angle
-					NSColor.colorWithCalibratedRed_green_blue_alpha_(color[0] ,color[1] , 0.0, 1.00).set()
+					NSColor.colorWithCalibratedRed_green_blue_alpha_(
+						self.nodeColor(tempFontLayer.paths[pathIndex].nodes[interpolatedIndex - 1],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex + 1])[0] ,
+						self.nodeColor(tempFontLayer.paths[pathIndex].nodes[interpolatedIndex - 1],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex],  tempFontLayer.paths[pathIndex].nodes[interpolatedIndex + 1])[1] ,
+						0.0,
+						1.0).set()
 					pNode.fill()
 
 					if self.nodeType[pathIndex][i] != "offcurve":
@@ -745,12 +703,12 @@ class viewHOI(ReporterPlugin):
 						pNode.stroke()
 
 					i = i + 1
+
 				pathIndex = pathIndex + 1
 
 		NSColor.blueColor().set()
 		p.setLineWidth_(lineScale)
 		p.stroke()
-
 		end = time.time()
 		print end - start
 
