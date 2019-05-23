@@ -1,4 +1,8 @@
-# Check if a layer is missing or has extra anchors relative to the first master, append these layers in a new tab
+#MenuTitle: Check Missing Anchors
+# -*- coding: utf-8 -*-
+"""
+Checks if there are any mismatched anchors across masters relative to the first master. Opens the problematic layers in a new tab
+"""
 
 font = Glyphs.font
 
