@@ -11,6 +11,7 @@
 #
 ###########################################################################################################
 
+from __future__ import print_function
 import objc
 import GlyphsApp
 from GlyphsApp import *
@@ -18,6 +19,12 @@ from GlyphsApp.plugins import *
 import math
 import time
 import re
+
+glyphsVersion = Glyphs.buildNumber
+def getAxisName(axis):
+	if glyphsVersion > 3000:
+		return axis.name
+	return axis["Name"]
 
 class viewHOI(ReporterPlugin):
 	# The dialog view (e.g., panel or window)
@@ -78,45 +85,23 @@ class viewHOI(ReporterPlugin):
 
 	# Set up variables for the name of each axis "axis" + "#" starting from 1
 	# Also makes variables for Min and Max values
+	@objc.python_method
 	def makeAxisVariables(self, font, iterAxes):
 		for i in iterAxes:
-			globals()['axis%s' % (i + 1)] = font.axes[i]["Name"]
+			globals()['axis%s' % (i + 1)] = getAxisName(font.axes[i])
 			globals()['axis%sMin' % (i + 1)] = 100000.0
 			globals()['axis%sMax' % (i + 1)] = -100000.0
 		
+	@objc.python_method
 	def checkMasters(self, font, axis, index):
 		for master in font.masters:
-			if index == 0:
-				if master.weightValue < globals()['axis%sMin' % (index + 1)]:
-					globals()['axis%sMin' % (index + 1)] = master.weightValue
-				if master.weightValue > globals()['axis%sMax' % (index + 1)]:
-					globals()['axis%sMax' % (index + 1)] = master.weightValue
-			elif index == 1:
-				if master.widthValue < globals()['axis%sMin' % (index + 1)]:
-					globals()['axis%sMin' % (index + 1)] = master.widthValue
-				if master.widthValue > globals()['axis%sMax' % (index + 1)]:
-					globals()['axis%sMax' % (index + 1)] = master.widthValue
-			elif index == 2:
-				if master.customValue < globals()['axis%sMin' % (index + 1)]:
-					globals()['axis%sMin' % (index + 1)] = master.customValue
-				if master.customValue > globals()['axis%sMax' % (index + 1)]:
-					globals()['axis%sMax' % (index + 1)] = master.customValue
-			elif index == 3:
-				if master.customValue1 < globals()['axis%sMin' % (index + 1)]:
-					globals()['axis%sMin' % (index + 1)] = master.customValue1
-				if master.customValue1 > globals()['axis%sMax' % (index + 1)]:
-					globals()['axis%sMax' % (index + 1)] = master.customValue1
-			elif index == 4:
-				if master.customValue2 < globals()['axis%sMin' % (index + 1)]:
-					globals()['axis%sMin' % (index + 1)] = master.customValue2
-				if master.customValue2 > globals()['axis%sMax' % (index + 1)]:
-					globals()['axis%sMax' % (index + 1)] = master.customValue2
-			elif index == 5:
-				if master.customValue3 < globals()['axis%sMin' % (index + 1)]:
-					globals()['axis%sMin' % (index + 1)] = master.customValue3
-				if master.customValue3 > globals()['axis%sMax' % (index + 1)]:
-					globals()['axis%sMax' % (index + 1)] = master.customValue3
-					
+			axisValue = master.axes[index]
+			if axisValue < globals()['axis%sMin' % (index + 1)]:
+				globals()['axis%sMin' % (index + 1)] = axisValue
+			if axisValue > globals()['axis%sMax' % (index + 1)]:
+				globals()['axis%sMax' % (index + 1)] = axisValue
+
+	@objc.python_method
 	def checkVirtualMasters(self, font, axis, index):
 		for parameter in font.customParameters:
 			if parameter.name == "Virtual Master":
@@ -128,60 +113,50 @@ class viewHOI(ReporterPlugin):
 							globals()['axis%sMax' % (index + 1)] = float(item["Location"])
 
 	# Can maybe truncate this
+	@objc.python_method
 	def setAxisExtremes(self, font, iterAxes):
 		for i in iterAxes:
 			# Set axis values
 			self.checkMasters(font, globals()['axis%s' % (i + 1)], i)
 			self.checkVirtualMasters(font, globals()['axis%s' % (i + 1)], i)
-
+			
+			minValue = globals()['axis%sMin' % (i + 1)]
+			maxValue = globals()['axis%sMax' % (i + 1)]
 			# Set slider values
 			if i == 0:
-				self.slider1.setMinValue_(globals()['axis%sMin' % (i + 1)])
-				self.slider1.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
-				print globals()['axis%sMin' % (i + 1)]
-				print globals()['axis%sMax' % (i + 1)]
+				self.slider1.setMinValue_(minValue)
+				self.slider1.setMaxValue_(maxValue)
 			elif i == 1:
-				self.slider2.setMinValue_(globals()['axis%sMin' % (i + 1)])
-				self.slider2.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
-				print globals()['axis%sMin' % (i + 1)]
-				print globals()['axis%sMax' % (i + 1)]
+				self.slider2.setMinValue_(minValue)
+				self.slider2.setMaxValue_(maxValue)
 			elif i == 2:
-				self.slider3.setMinValue_(globals()['axis%sMin' % (i + 1)])
-				self.slider3.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
-				print globals()['axis%sMin' % (i + 1)]
-				print globals()['axis%sMax' % (i + 1)]
+				self.slider3.setMinValue_(minValue)
+				self.slider3.setMaxValue_(maxValue)
 			elif i == 3:
-				self.slider4.setMinValue_(globals()['axis%sMin' % (i + 1)])
-				self.slider4.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
-				print globals()['axis%sMin' % (i + 1)]
-				print globals()['axis%sMax' % (i + 1)]
+				self.slider4.setMinValue_(minValue)
+				self.slider4.setMaxValue_(maxValue)
 			elif i == 4:
-				self.slider5.setMinValue_(globals()['axis%sMin' % (i + 1)])
-				self.slider5.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
-				print globals()['axis%sMin' % (i + 1)]
-				print globals()['axis%sMax' % (i + 1)]
+				self.slider5.setMinValue_(minValue)
+				self.slider5.setMaxValue_(maxValue)
 			elif i == 5:
-				self.slider6.setMinValue_(globals()['axis%sMin' % (i + 1)])
-				self.slider6.setMaxValue_(globals()['axis%sMax' % (i + 1)])
-				print font.axes[i]["Name"]
-				print globals()['axis%sMin' % (i + 1)]
-				print globals()['axis%sMax' % (i + 1)]
+				self.slider6.setMinValue_(minValue)
+				self.slider6.setMaxValue_(maxValue)
+			print(getAxisName(font.axes[i]))
+			print(minValue)
+			print(maxValue)
 
+	@objc.python_method
 	def settings(self):
 		# Load .nib file next to plugin.py
 		self.loadNib("sliderView", __file__)
-		self.menuName = Glyphs.localize({'en': u'HOI Viewer', 'de': u'Mein Plugin'})
+		self.menuName = Glyphs.localize({'en': u'HOI Viewer'})
 		# Load slider view as a right-click context menu
 		self.generalContextMenus = [{'name': 'HOI Viewer', 'view': self.sliderView}]
 
 	# Updates the temp instance and the drawings based on the sliders
 	# DONE: Figure out how to pull the state of the check boxes and then set values equal based on it
 	# TODO: use a dictionary to link axes rather than iterating through them
+	@objc.python_method
 	def sliderUpdate(self):
 		sliderList = [self.slider1, self.slider2, self.slider3, self.slider4, self.slider5, self.slider6]
 		keySlider = None
@@ -298,6 +273,7 @@ class viewHOI(ReporterPlugin):
 			globals()['check6'] = True
 
 	# generate nodes on canvas
+	@objc.python_method
 	def roundDotForPoint( self, thisPoint, markerWidth ):
 		"""
 		from Show Angled Handles by MekkaBlue
@@ -307,6 +283,7 @@ class viewHOI(ReporterPlugin):
 		return NSBezierPath.bezierPathWithOvalInRect_(myRect)
 
 	# If nodes are stacked calculate using the next node
+	@objc.python_method
 	def getDelta(self, node, node2, previous):
 		if previous == True:
 			previous = True
@@ -325,6 +302,7 @@ class viewHOI(ReporterPlugin):
 			return [dx, dy]
 
 	# Node color changes based on angle (change the 'angleTolerance' variable)
+	@objc.python_method
 	def nodeColor(self, nodePrev, node, nodeNext):
 		deltaPrev = self.getDelta(node, nodePrev, True)
 		deltaNext = self.getDelta(node, nodeNext, False)
@@ -361,6 +339,7 @@ class viewHOI(ReporterPlugin):
 	# These functions are currently not being used...too slow
 	# TODO: make currentGlyph a class variable rather than a local one
 	# TODO: find a way to keep HOI layers in sync
+	@objc.python_method
 	def getFullName(self, layerName):
 		currentGlyph = Glyphs.font.selectedLayers[0].parent
 
@@ -370,7 +349,8 @@ class viewHOI(ReporterPlugin):
 
 	# Sync everything to the primary control masters V2
 	# needs to work with more paths*****
-	def syncToControl(self, aName, cName, dName, bName, hoiName):	
+	@objc.python_method
+	def syncToControl(self, aName, cName, dName, bName, hoiName):
 		currentGlyph = Glyphs.font.selectedLayers[0].parent
 		
 		c2Name = self.getFullName(re.sub("\d", "2", cName))
@@ -397,6 +377,7 @@ class viewHOI(ReporterPlugin):
 
 	# Sync everything to the respective HOI layer V2
 	# needs to work with more paths*****
+	@objc.python_method
 	def syncToHOI(self, aName, cName, dName, bName, hoiName):	
 		currentGlyph = Glyphs.font.selectedLayers[0].parent
 		
@@ -426,6 +407,7 @@ class viewHOI(ReporterPlugin):
 
 	# TODO: Preview axis should have separate checkboxes than syncing axes
 	# TODO: Preview should be based on the min and max value of each axis
+	@objc.python_method
 	def showAll(self, layer, currentGlyphName, pathIndex, interpolatedIndex, nodeScale, futureFontLayer):
 		x2 = futureFontLayer.paths[pathIndex].nodes[interpolatedIndex].x
 		y2 = futureFontLayer.paths[pathIndex].nodes[interpolatedIndex].y
@@ -454,8 +436,9 @@ class viewHOI(ReporterPlugin):
 		pNode.fill()
 
 	# MAYBE change this to background instead
+	@objc.python_method
 	def background(self, layer):
-		print "Start BG Draw"
+		print("Start BG Draw")
 		start = time.time()
 		currentGlyphName = layer.parent.name
 		masterLayer = layer.parent.layers[layer.associatedMasterId]
@@ -473,19 +456,14 @@ class viewHOI(ReporterPlugin):
 
 		# MAYBE move this to a method and store in a variable with all the relevant axes values
 		startInstance = time.time()
-		tempInstance = self.font.instances[0].copy()
+		tempInstance = GSInstance()
+		tempInstance.setFont_(self.font)
 		tempInstance.name = "tempInstance"
-		tempInstance.weightValue = axis1Value
-		tempInstance.widthValue = axis2Value
-		tempInstance.customValue = axis3Value
-		tempInstance.setInterpolationCustom1_(axis4Value)
-		tempInstance.setInterpolationCustom3_(axis6Value)
-		tempInstance.setInterpolationCustom2_(axis5Value + 1)
-		tempInstance.setInterpolationCustom2_(axis5Value)
+		tempInstance.axes = [axis1Value, axis2Value, axis3Value, axis4Value, axis6Value, axis5Value + 1, axis5Value]
 
 		tempFontLayer = tempInstance.interpolatedFontProxy.glyphs[currentGlyphName].layers[0]
 		endInstance = time.time() - startInstance
-		print "Copy + Update Instance Time:", endInstance
+		print("Copy + Update Instance Time:", endInstance)
 
 		if self.showFuture == True:
 			previewProxies = []
@@ -510,14 +488,14 @@ class viewHOI(ReporterPlugin):
 					increment = (globals()['axis%sMax' % (i + 1)] - globals()['axis%sMin' % (i + 1)]) / resolution
 
 			# If this can be faster, then the range can be more to show smaller increments, or show more points at once
-			print "Making Preview Proxies"
+			print("Making Preview Proxies")
 			startProxies = time.time()
 			for i in range(resolution):
 				try:
 					plotPoint = previewMin + (i * increment)
 					preview.update({"preview": plotPoint})
 				except:
-					print "No axis set to preview"
+					print("No axis set to preview")
 
 				futureTempInstance.weightValue = preview[preview["axis1"]]
 				futureTempInstance.widthValue = preview[preview["axis2"]]
@@ -530,7 +508,7 @@ class viewHOI(ReporterPlugin):
 				futureFontLayer = futureTempInstance.interpolatedFontProxy.glyphs[currentGlyphName].layers[0]
 
 				previewProxies.append(futureFontLayer)
-			print "Finished Making Proxies", time.time() - startProxies
+			print("Finished Making Proxies", time.time() - startProxies)
 
 		# TODO: find a way to implement this in the foreground draw nodes loop. Should make it slightly faster
 		# def glyphPreview(self, masterLayer, pathIndex, node, tempFontLayer, tSub):
@@ -604,7 +582,7 @@ class viewHOI(ReporterPlugin):
 
 		t.fill()
 		endVarPrev = time.time()
-		print "Draw Var Preview Time:", time.time() - startVarPrev
+		print("Draw Var Preview Time:", time.time() - startVarPrev)
 
 		# currentState = layer.paths[0]
 		# Adding a state variable and an if statement makes this not as responsive as I'd like
@@ -669,7 +647,7 @@ class viewHOI(ReporterPlugin):
 							drawFuture = time.time()
 							for proxy in previewProxies:
 								self.showAll(layer, currentGlyphName, pathIndex, interpolatedIndex, nodeScale, proxy)
-							print "Drew Future %s" % (time.time() - drawFuture)
+							print("Drew Future %s" % (time.time() - drawFuture))
 
 						# FUTURE block ————————————————————————————————————————————————————————————
 
@@ -722,7 +700,7 @@ class viewHOI(ReporterPlugin):
 						drawFuture = time.time()
 						for proxy in previewProxies:
 							self.showAll(layer, currentGlyphName, pathIndex, interpolatedIndex, nodeScale, proxy)
-						print "Drew Future %s" % (time.time() - drawFuture)
+						print("Drew Future %s" % (time.time() - drawFuture))
 
 					# FUTURE block ————————————————————————————————————————————————————————————
 
@@ -752,8 +730,9 @@ class viewHOI(ReporterPlugin):
 		p.stroke()
 
 		end = time.time()
-		print end - start
+		print(end - start)
 
+	@objc.python_method
 	def __file__(self):
 		"""Please leave this method unchanged"""
 		return __file__

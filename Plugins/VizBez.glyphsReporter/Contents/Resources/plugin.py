@@ -1,4 +1,5 @@
 # encoding: utf-8
+from __future__ import division, print_function, unicode_literals
 
 ###########################################################################################################
 #
@@ -18,9 +19,10 @@ from GlyphsApp.plugins import *
 
 class VizBez(ReporterPlugin):
 
+	@objc.python_method
 	def settings(self):
 		self.menuName = Glyphs.localize({'en': u'VizBez'})
-
+	@objc.python_method
 	def roundDotForPoint(self, thisPoint, markerWidth):
 		"""
 		from Show Angled Handles by MekkaBlue
@@ -29,7 +31,7 @@ class VizBez(ReporterPlugin):
 		myRect = NSRect( ( thisPoint[0] - markerWidth * 0.5, thisPoint[1] - markerWidth * 0.5 ), ( markerWidth, markerWidth ) )
 		return NSBezierPath.bezierPathWithOvalInRect_(myRect)
 
-
+	@objc.python_method
 	def nodeColor(self, nodePrev, node, nodeNext, angleTolerance=1.0):
 		def getDelta(node, node2, previous):
 			if previous == True:
@@ -70,7 +72,8 @@ class VizBez(ReporterPlugin):
 			greenValue = 1.0 - ((diff % angleTolerance) / angleTolerance)
 
 		return (redValue, greenValue)
-	 
+
+	@objc.python_method
 	def drawBezier(self, resolution, points, scale):
 		def pointOnBezier(t, points):
 			n = len(points) - 1
@@ -193,6 +196,7 @@ class VizBez(ReporterPlugin):
 		p.stroke()
 		return steps
 		
+	@objc.python_method
 	def background(self, layer):
 		scale = Glyphs.font.currentTab.scale
 		nodeScale = 8.0 / scale
@@ -222,7 +226,7 @@ class VizBez(ReporterPlugin):
 					if j < (len(pathSteps) - 1):
 						n = NSBezierPath.bezierPath()
 						color = self.nodeColor(pathSteps[j - 1][i], point, pathSteps[j + 1][i], angleTolerance=angleTolerance)
-						print j, color
+						print(j, color)
 						n.appendBezierPath_(self.roundDotForPoint(point, nodeScale))
 						storeNodes.append( (n, NSColor.colorWithCalibratedRed_green_blue_alpha_(color[0] ,color[1] , 0.0, 1.0)) )
 			NSColor.colorWithCalibratedRed_green_blue_alpha_(0.0, 0.0, 1.0, 0.5).set()
@@ -233,6 +237,7 @@ class VizBez(ReporterPlugin):
 			color.set()
 			node.fill()
 
+	@objc.python_method
 	def __file__(self):
 		"""Please leave this method unchanged"""
 		return __file__
