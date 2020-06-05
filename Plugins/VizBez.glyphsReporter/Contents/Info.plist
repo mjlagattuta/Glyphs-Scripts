@@ -3,9 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>English</string>
-	<key>CFBundleDisplayName</key>
-	<string>VizBez</string>
+	<string>en</string>
 	<key>CFBundleExecutable</key>
 	<string>plugin</string>
 	<key>CFBundleIdentifier</key>
@@ -14,25 +12,13 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>VizBez</string>
-	<key>CFBundlePackageType</key>
-	<string>BNDL</string>
-	<key>CFBundleVersion</key>
-	<string>____BundleVersion____</string>
 	<key>CFBundleShortVersionString</key>
-	<string>____BundleVersionString____</string>
-	<key>UpdateFeedURL</key>
-	<string>____OnlineUrlToThisPlist____</string>
-	<key>productPageURL</key>
-	<string>____ProductPageURL____</string>
-	<key>productReleaseNotes</key>
-	<string>____LatestReleaseNotes____</string>
+	<string>2</string>
+	<key>CFBundleVersion</key>
+	<string>0.1</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, MichaelLaGattuta, ____YEAR____</string>
 	<key>NSPrincipalClass</key>
 	<string>VizBez</string>
-	<key>PyMainFileNames</key>
-	<array>
-		<string>../MacOS/main.py</string>
-	</array>
 </dict>
 </plist>
